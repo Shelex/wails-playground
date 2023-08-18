@@ -1,0 +1,56 @@
+name: Build and release app
+
+on:
+  workflow_dispatch:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        build:
+          [
+            { name: Demo-UI, platform: darwin, arch: arm64, os: macos-latest },
+            { name: Demo-UI.exe, platform: windows/amd64, os: windows-latest },
+            { name: Demo-UI, platform: linux/amd64, os: ubuntu-latest },
+          ]
+    runs-on: ${{ matrix.build.os }}
+    defaults:
+      run:
+        working-directory: demo
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: demo/go.mod
+          cache-dependency-path: demo/go.sum
+      - name: Setup NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18.x"
+      - name: Get Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+      - name: Build
+        run: |
+          wails build -platform ${{ matrix.build.platform }}/${{ matrix.build.arch }} -clean
+          ditto -c -k --keepParent ./build/bin/${{ matrix.build.name }}.app ./${{ matrix.build.name }}_${{ matrix.build.platform }}_${{ matrix.build.arch }}.zip
+          rm -rf ./build/bin/${{ matrix.build.name }}.app
+      - name: Build (macos universal)
+        if: matrix.build.platform == 'darwin'
+        run: |
+          wails build -platform ${{ matrix.build.platform }}/universal -clean
+          ditto -c -k --keepParent ./build/bin/${{ matrix.build.name }}.app ./${{ matrix.build.name }}_${{ matrix.build.platform }}_universal.zip
+          rm -rf ./build/bin/${{ matrix.build.name }}.app
+      - name: Upload apps to release
+        uses: shogo82148/actions-upload-release-asset@v1
+        with:
+          asset_path: demo/*.zip
+          upload_url: ${{ github.event.release.upload_url }}
+          overwrite: true

@@ -13,8 +13,8 @@ jobs:
         build:
           [
             { name: Demo-UI, platform: darwin, arch: arm64, os: macos-latest },
-            { name: Demo-UI.exe, platform: windows/amd64, os: windows-latest },
-            { name: Demo-UI, platform: linux/amd64, os: ubuntu-latest },
+            #{ name: Demo-UI.exe, platform: windows/amd64, os: windows-latest },
+            #{ name: Demo-UI, platform: linux/amd64, os: ubuntu-latest },
           ]
     runs-on: ${{ matrix.build.os }}
     defaults:

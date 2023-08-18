@@ -12,7 +12,7 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-const AppPath = "Shelex/scaling-octo-garbanzo"
+const AppPath = "Shelex/wails-playground"
 
 func (a *App) getUpdater() *selfupdate.Updater {
 	updater, err := selfupdate.NewUpdater(selfupdate.Config{})
